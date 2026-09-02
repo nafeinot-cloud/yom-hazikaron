@@ -220,23 +220,17 @@ function todayYMD() {
 
 const GEMATRIA_ONES = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
 const GEMATRIA_TENS = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+const GEMATRIA_HUNDREDS = ['', 'ק', 'ר', 'ש', 'ת', 'תק', 'תר', 'תש', 'תת', 'תתק'];
 
 export function hebrewNumeral(num) {
   if (num <= 0 || num > 999) return String(num);
-  let n = num;
-  let out = '';
-  const hundreds = Math.floor(n / 100);
-  n %= 100;
-  out += 'ת'.repeat(0); // placeholder, hundreds handled below for years elsewhere
-  if (hundreds > 0) {
-    // Only used for day-of-month (1-30) in this app, hundreds unused, kept for completeness.
-    out += String(hundreds);
-  }
-  if (n === 15) return out + 'ט״ו';
-  if (n === 16) return out + 'ט״ז';
-  const tens = Math.floor(n / 10);
-  const ones = n % 10;
-  out += GEMATRIA_TENS[tens] + GEMATRIA_ONES[ones];
-  if (out.length === 1) return out + '׳';
-  return out.slice(0, -1) + '״' + out.slice(-1);
+  const hundreds = Math.floor(num / 100);
+  const n = num % 100;
+  let letters = GEMATRIA_HUNDREDS[hundreds];
+  // 15/16 are written ט״ו / ט״ז (not יה / יו, which would spell divine names).
+  if (n === 15) letters += 'טו';
+  else if (n === 16) letters += 'טז';
+  else letters += GEMATRIA_TENS[Math.floor(n / 10)] + GEMATRIA_ONES[n % 10];
+  if (letters.length === 1) return letters + '׳';
+  return letters.slice(0, -1) + '״' + letters.slice(-1);
 }
