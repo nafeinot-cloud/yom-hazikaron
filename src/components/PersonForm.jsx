@@ -13,12 +13,15 @@ export default function PersonForm() {
   const navigate = useNavigate();
   const editing = Boolean(id);
 
-  const [fullName, setFullName] = useState('');
   const [firstName, setFirstName] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [gender, setGender] = useState('male');
   const [hebrewYear, setHebrewYear] = useState(CURRENT_HYEAR);
   const [hebrewMonth, setHebrewMonth] = useState(7); // Tishrei
   const [hebrewDay, setHebrewDay] = useState(1);
   const [nusach, setNusach] = useState('ashkenazi');
+  const [burialPlace, setBurialPlace] = useState('');
   const [gregInput, setGregInput] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -27,12 +30,15 @@ export default function PersonForm() {
     getDoc(doc(db, 'people', id)).then((snap) => {
       if (!snap.exists()) return;
       const d = snap.data();
-      setFullName(d.fullName ?? '');
       setFirstName(d.firstName ?? '');
+      setFatherName(d.fatherName ?? '');
+      setLastName(d.lastName ?? '');
+      setGender(d.gender ?? 'male');
       setHebrewYear(d.hebrewYear ?? CURRENT_HYEAR);
       setHebrewMonth(d.hebrewMonth ?? 7);
       setHebrewDay(d.hebrewDay ?? 1);
       setNusach(d.nusach ?? 'ashkenazi');
+      setBurialPlace(d.burialPlace ?? '');
     });
   }, [editing, id]);
 
@@ -57,15 +63,18 @@ export default function PersonForm() {
 
   async function handleSave(e) {
     e.preventDefault();
-    if (!fullName.trim() || !firstName.trim()) return;
+    if (!firstName.trim()) return;
     setSaving(true);
     const payload = {
-      fullName: fullName.trim(),
       firstName: firstName.trim(),
+      fatherName: fatherName.trim(),
+      lastName: lastName.trim(),
+      gender,
       hebrewYear,
       hebrewMonth,
       hebrewDay,
       nusach,
+      burialPlace: burialPlace.trim(),
     };
     try {
       if (editing) {
@@ -90,29 +99,54 @@ export default function PersonForm() {
 
       <form className="content" onSubmit={handleSave}>
         <div className="field">
-          <label className="field-label">שם מלא (לרישום ולהנצחה)</label>
-          <input
-            className="field-input"
-            type="text"
-            placeholder="לדוגמה: אברהם בן יצחק כהן"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="field">
           <label className="field-label">
-            שם פרטי הנפטר <span className="muted">— משמש לבחירת המשניות ופסוקי תהילים</span>
+            שם פרטי הנפטר <span className="muted">— משמש גם לבחירת המשניות ופסוקי תהילים</span>
           </label>
           <input
             className="field-input"
             type="text"
-            placeholder="לדוגמה: אברהם"
+            placeholder="לדוגמה: ישראל"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             required
           />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+          <div className="field">
+            <label className="field-label">שם האב</label>
+            <input
+              className="field-input"
+              type="text"
+              placeholder="לדוגמה: משה יוסף"
+              value={fatherName}
+              onChange={(e) => setFatherName(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="field-label">שם משפחה</label>
+            <input
+              className="field-input"
+              type="text"
+              placeholder="לדוגמה: עינות"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="field-label" style={{ marginBottom: 8 }}>
+            מין
+          </div>
+          <div className="chip-row">
+            <div className={`chip${gender === 'male' ? ' selected' : ''}`} onClick={() => setGender('male')}>
+              זכר
+            </div>
+            <div className={`chip${gender === 'female' ? ' selected' : ''}`} onClick={() => setGender('female')}>
+              נקבה
+            </div>
+          </div>
         </div>
 
         <div className="divider" />
@@ -176,6 +210,17 @@ export default function PersonForm() {
               ספרדי
             </div>
           </div>
+        </div>
+
+        <div className="field">
+          <label className="field-label">מקום קבורה (לא חובה)</label>
+          <input
+            className="field-input"
+            type="text"
+            placeholder="לדוגמה: הר המנוחות, ירושלים"
+            value={burialPlace}
+            onChange={(e) => setBurialPlace(e.target.value)}
+          />
         </div>
 
         <button type="submit" className="btn-primary" style={{ marginTop: 6 }} disabled={saving}>

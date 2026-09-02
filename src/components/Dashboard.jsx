@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { absToGregorian, gregorianToAbs, hebrewMonthName, hebrewNumeral, nextYahrzeit } from '../lib/hebrewCalendar.js';
+import { displayName, honorific } from '../lib/person.js';
 import { CalendarIcon, FlameIcon, PlusIcon } from './icons.jsx';
 
 const NUSACH_LABEL = { ashkenazi: 'נוסח אשכנזי', sephardi: 'נוסח ספרדי' };
@@ -56,7 +57,9 @@ export default function Dashboard() {
             {sorted.map((p, i) => (
               <Link to={`/person/${p.id}`} key={p.id} className={`person-card${i === 0 ? ' next' : ''}`}>
                 <div className="person-card-main">
-                  <div className="person-name">{p.fullName}</div>
+                  <div className="person-name">
+                    {displayName(p)} {honorific(p)}
+                  </div>
                   <div className="person-date">
                     <CalendarIcon size={15} />
                     <span>

@@ -11,6 +11,7 @@ import {
   YEHI_RATZON_CLOSING,
 } from '../data/tefilaOrder.js';
 import { hebrewNumeral } from '../lib/hebrewCalendar.js';
+import { religiousName } from '../lib/person.js';
 
 export default function TefilaTab({ person }) {
   const [nusach, setNusach] = useState(person.nusach ?? NUSACH.ASHKENAZI);
@@ -20,7 +21,8 @@ export default function TefilaTab({ person }) {
   const { nameStanzas, neshamaStanzas } = tehillim119ForYahrzeit(person.firstName);
   const memorialText = fillPrayerName(
     nusach === NUSACH.ASHKENAZI ? EL_MALEI_RACHAMIM.hebrew : HASHKAVA.hebrew,
-    person.fullName
+    religiousName(person),
+    person.gender
   );
 
   return (

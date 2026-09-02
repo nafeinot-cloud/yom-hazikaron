@@ -110,12 +110,15 @@ npm run dev
 
 ```
 people/{personId}
-  fullName: string      — "אברהם בן יצחק כהן"
-  firstName: string     — "אברהם" (לצורך המשניות/תהילים)
+  firstName: string     — "ישראל" (גם לצורך המשניות/תהילים)
+  fatherName: string    — "משה יוסף" (ליצירת השם הדתי "ישראל בן משה יוסף")
+  lastName: string      — "עינות"
+  gender: "male" | "female"   (עבור ז"ל/ע"ה ודקדוק נכון בתפילות)
   hebrewDay: number      (1-30)
   hebrewMonth: number    (1=ניסן ... 7=תשרי ... 12/13=אדר)
   hebrewYear: number      (למשל 5784)
   nusach: "ashkenazi" | "sephardi"
+  burialPlace: string    — "הר המנוחות, ירושלים" (לא חובה)
 
   posts/{postId}          — עמוד הזיכרון (שלב הבא)
     text: string

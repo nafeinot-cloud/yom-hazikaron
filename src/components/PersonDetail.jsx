@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { hebrewMonthName, hebrewNumeral } from '../lib/hebrewCalendar.js';
+import { displayName, honorific } from '../lib/person.js';
 import { BackIcon, BookIcon, PrayerIcon, WallIcon } from './icons.jsx';
 import MishnaTab from './MishnaTab.jsx';
 import TefilaTab from './TefilaTab.jsx';
@@ -42,10 +43,11 @@ export default function PersonDetail() {
           </Link>
           <div style={{ minWidth: 0 }}>
             <div className="person-name" style={{ fontSize: 17 }}>
-              {person.fullName}
+              {displayName(person)} {honorific(person)}
             </div>
             <div className="muted" style={{ fontSize: 12 }}>
               {hebrewNumeral(person.hebrewDay)} ב{hebrewMonthName(person.hebrewMonth, person.hebrewYear)}
+              {person.burialPlace ? ` · ${person.burialPlace}` : ''}
             </div>
           </div>
         </div>

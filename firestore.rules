@@ -30,12 +30,15 @@ service cloud.firestore {
 }
 
 function isValidPerson(data) {
-  return data.fullName is string && data.fullName.size() > 0 && data.fullName.size() < 200
-    && data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 100
+  return data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 100
+    && data.fatherName is string && data.fatherName.size() < 100
+    && data.lastName is string && data.lastName.size() < 100
+    && data.gender in ['male', 'female']
     && data.hebrewDay is int && data.hebrewDay >= 1 && data.hebrewDay <= 30
     && data.hebrewMonth is int && data.hebrewMonth >= 1 && data.hebrewMonth <= 13
     && data.hebrewYear is int
-    && data.nusach in ['ashkenazi', 'sephardi'];
+    && data.nusach in ['ashkenazi', 'sephardi']
+    && data.burialPlace is string && data.burialPlace.size() < 200;
 }
 
 function isValidPost(data) {
