@@ -136,6 +136,30 @@
   margin-top: 2px;
 }
 
+.font-size-control {
+  display: flex;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+.font-size-control button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.font-size-control button:disabled {
+  opacity: 0.4;
+}
+
 .fab {
   position: fixed;
   bottom: 24px;

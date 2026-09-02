@@ -22,6 +22,7 @@ export default function MemorialWall({ person }) {
   const [posts, setPosts] = useState(null);
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
+  const [imageLink, setImageLink] = useState('');
   const [posting, setPosting] = useState(false);
 
   useEffect(() => onAuthStateChanged(auth, setUser), []);
@@ -42,7 +43,7 @@ export default function MemorialWall({ person }) {
   }
 
   async function handlePost() {
-    if (!user || (!text.trim() && !image)) return;
+    if (!user || (!text.trim() && !image && !imageLink.trim())) return;
     setPosting(true);
     try {
       let imageUrl = null;
@@ -51,6 +52,8 @@ export default function MemorialWall({ person }) {
         const storageRef = ref(storage, path);
         await uploadBytes(storageRef, image);
         imageUrl = await getDownloadURL(storageRef);
+      } else if (imageLink.trim()) {
+        imageUrl = imageLink.trim();
       }
       await addDoc(collection(db, 'people', person.id, 'posts'), {
         text: text.trim(),
@@ -61,6 +64,7 @@ export default function MemorialWall({ person }) {
       });
       setText('');
       setImage(null);
+      setImageLink('');
     } finally {
       setPosting(false);
     }
@@ -87,17 +91,32 @@ export default function MemorialWall({ person }) {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <label className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
-              <WallIcon size={19} />
-              {image ? image.name : 'הוספת תמונה'}
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => setImage(e.target.files?.[0] ?? null)}
-              />
-            </label>
+          <label className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
+            <WallIcon size={19} />
+            {image ? image.name : 'בחירת תמונה מהגלריה'}
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                setImage(e.target.files?.[0] ?? null);
+                setImageLink('');
+              }}
+            />
+          </label>
+
+          {!image && (
+            <input
+              className="field-input"
+              type="url"
+              placeholder="או הדביקו קישור ישיר לתמונה"
+              value={imageLink}
+              onChange={(e) => setImageLink(e.target.value)}
+              style={{ fontSize: 12.5 }}
+            />
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <button className="btn-primary" style={{ width: 'auto', padding: '8px 18px', fontSize: 12.5 }} onClick={handlePost} disabled={posting}>
               {posting ? 'מפרסם...' : 'פרסום'}
             </button>
@@ -118,7 +137,22 @@ export default function MemorialWall({ person }) {
               </div>
             </div>
             {post.text && <div style={{ fontSize: 13, lineHeight: 1.7 }}>{post.text}</div>}
-            {post.imageUrl && <img className="post-photo" src={post.imageUrl} alt="" />}
+            {post.imageUrl && (
+              <img
+                className="post-photo"
+                src={post.imageUrl}
+                alt=""
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextSibling.style.display = 'block';
+                }}
+              />
+            )}
+            {post.imageUrl && (
+              <div className="muted" style={{ display: 'none', fontSize: 11.5 }}>
+                לא ניתן לטעון את התמונה מהקישור שסופק.
+              </div>
+            )}
           </div>
         ))}
     </main>

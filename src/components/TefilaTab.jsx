@@ -5,8 +5,13 @@ import {
   fillPrayerName,
   GRAVESIDE_PSALMS,
   HASHKAVA,
+  KADDISH_DRABBANAN,
+  KADDISH_YATOM,
   NUSACH,
-  SEPHARDI_OPENING,
+  PRAYER_STEPS,
+  SEPHARDI_ENTRY_CONDITIONAL,
+  SEPHARDI_GRAVE_ARRIVAL,
+  TEFILA_LEILUY_NESHAMA,
   tehillim119ForYahrzeit,
   YEHI_RATZON_CLOSING,
 } from '../data/tefilaOrder.js';
@@ -15,15 +20,11 @@ import { religiousName } from '../lib/person.js';
 
 export default function TefilaTab({ person }) {
   const [nusach, setNusach] = useState(person.nusach ?? NUSACH.ASHKENAZI);
-  const [showAllName, setShowAllName] = useState(false);
-  const [showAllNeshama, setShowAllNeshama] = useState(false);
+  const name = religiousName(person);
+  const gender = person.gender;
 
+  const steps = PRAYER_STEPS.filter((s) => s.nusach === 'both' || s.nusach === nusach);
   const { nameStanzas, neshamaStanzas } = tehillim119ForYahrzeit(person.firstName);
-  const memorialText = fillPrayerName(
-    nusach === NUSACH.ASHKENAZI ? EL_MALEI_RACHAMIM.hebrew : HASHKAVA.hebrew,
-    religiousName(person),
-    person.gender
-  );
 
   return (
     <main className="content">
@@ -44,126 +45,148 @@ export default function TefilaTab({ person }) {
 
       <div className="section-label">סדר התפילה בעלייה לקבר</div>
 
-      <div className="prayer-step">
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div className="step-num">1</div>
-          <div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>ברכת הכניסה לבית הקברות</div>
-            <div className="muted" style={{ fontSize: 12 }}>{CEMETERY_ENTRY_BLESSING.hebrew}</div>
-          </div>
-        </div>
-        <div className="note-box" style={{ fontSize: 11.5 }}>{CEMETERY_ENTRY_BLESSING.condition}</div>
-        {nusach === NUSACH.SEPHARDI && (
-          <>
-            <div className="divider" />
-            <div className="muted" style={{ fontSize: 12 }}>{SEPHARDI_OPENING.hebrew}</div>
-            <div className="muted" style={{ fontSize: 11 }}>{SEPHARDI_OPENING.note}</div>
-          </>
-        )}
-      </div>
-
-      <div className="prayer-step" style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <div className="step-num">2</div>
-        <div>
-          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>שבעה פרקי תהילים</div>
-          <div className="muted" style={{ fontSize: 12.5 }}>
-            פרקים {GRAVESIDE_PSALMS.map((p) => hebrewNumeral(p)).join(', ')}
-          </div>
-        </div>
-      </div>
-
-      <div className="prayer-step">
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div className="step-num">3</div>
-          <div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>
-              תהילים קי״ט לפי אותיות השם ״{person.firstName}״
-            </div>
-            <div className="muted" style={{ fontSize: 12 }}>
-              8 פסוקים לכל אות, לפי הסדר האלפביתי בפרק — ולאחריהם ממשיכים לאותיות נ-ש-מ-ה מאותו הפרק
-            </div>
-          </div>
-        </div>
-
-        <StanzaList stanzas={nameStanzas} expanded={showAllName} onToggle={() => setShowAllName((v) => !v)} />
-
-        <div className="divider" />
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--indigo)' }}>בהמשך — אותיות נ־ש־מ־ה (מפרק קי״ט)</div>
-        <StanzaList
-          stanzas={neshamaStanzas}
-          expanded={showAllNeshama}
-          onToggle={() => setShowAllNeshama((v) => !v)}
-          indigo
+      {steps.map((step, i) => (
+        <StepCard
+          key={step.id}
+          num={i + 1}
+          step={step}
+          nusach={nusach}
+          name={name}
+          gender={gender}
+          firstName={person.firstName}
+          nameStanzas={nameStanzas}
+          neshamaStanzas={neshamaStanzas}
         />
-      </div>
-
-      <div className="prayer-step" style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <div className="step-num">4</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 3 }}>קדיש יתום / דרבנן</div>
-          <div className="muted" style={{ fontSize: 12 }}>בהמשך ללימוד המשניות</div>
-        </div>
-        <div className="preview-badge">דורש מניין</div>
-      </div>
-
-      <div className="prayer-step">
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div className="step-num gold">5</div>
-          <div style={{ fontSize: 13.5, fontWeight: 700 }}>
-            {nusach === NUSACH.ASHKENAZI ? 'אֵל מָלֵא רַחֲמִים' : 'הַשְׁכָּבָה'}
-          </div>
-        </div>
-        <div className="prayer-text">{memorialText}</div>
-      </div>
-
-      <div className="prayer-step" style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <div className="step-num">6</div>
-        <div style={{ fontSize: 13.5, fontWeight: 700 }}>יהי רצון לסיום</div>
-      </div>
+      ))}
 
       <div className="disclaimer">
-        נוסחי התפילה כאן ראשוניים להמחשת המבנה. לפני שילוב באפליקציה מומלץ לאמת מול רב או סידור מוסמך.
+        נוסח אשכנזי אומת מול המשפחה; נוסח ספרדי מבוסס על kadisha.org/prayers-by-name. לפני שימוש בפועל מומלץ לוודא מול רב או סידור מוסמך.
       </div>
     </main>
   );
 }
 
-function StanzaList({ stanzas, expanded, onToggle, indigo }) {
-  const shown = expanded ? stanzas : stanzas.slice(0, 2);
+function StepCard({ num, step, nusach, name, gender, firstName, nameStanzas, neshamaStanzas }) {
   return (
-    <>
-      {shown.map((s, i) => (
-        <div className={`verse-row${indigo ? ' indigo' : ''}`} key={i}>
+    <div className="prayer-step">
+      <div style={{ display: 'flex', gap: 12, alignItems: step.id === 'seven-psalms' || step.id === 'tehillim-119' ? 'flex-start' : 'center' }}>
+        <div className="step-num">{num}</div>
+        <div style={{ fontSize: 13.5, fontWeight: 700, flex: 1 }}>{step.title}</div>
+        {step.note && <div className="preview-badge">{step.note}</div>}
+      </div>
+
+      {step.id === 'entry-blessing' && (
+        <>
+          <div className="muted" style={{ fontSize: 13, lineHeight: 1.9, whiteSpace: 'pre-line' }}>
+            {nusach === NUSACH.ASHKENAZI ? CEMETERY_ENTRY_BLESSING.hebrew : SEPHARDI_ENTRY_CONDITIONAL.hebrew}
+          </div>
+          <div className="note-box" style={{ fontSize: 11.5 }}>
+            {nusach === NUSACH.ASHKENAZI ? CEMETERY_ENTRY_BLESSING.condition : SEPHARDI_ENTRY_CONDITIONAL.condition}
+          </div>
+        </>
+      )}
+
+      {step.id === 'grave-arrival' && (
+        <>
+          <div className="muted" style={{ fontSize: 13, lineHeight: 1.9 }}>{SEPHARDI_GRAVE_ARRIVAL.hebrew}</div>
+          <div className="note-box" style={{ fontSize: 11.5 }}>{SEPHARDI_GRAVE_ARRIVAL.note}</div>
+        </>
+      )}
+
+      {step.id === 'seven-psalms' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {GRAVESIDE_PSALMS.map((psalm) => (
+            <PsalmBlock key={psalm.chapter} psalm={psalm} />
+          ))}
+        </div>
+      )}
+
+      {step.id === 'tehillim-119' && (
+        <>
+          <div className="muted" style={{ fontSize: 12 }}>
+            תהילים קי״ט לפי אותיות השם ״{firstName}״, ולאחריהן אותיות נ-ש-מ-ה מאותו הפרק - 8 פסוקים לכל אות.
+          </div>
+          <LetterGroups stanzas={nameStanzas} />
+          <div className="divider" />
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--indigo)' }}>אותיות נ־ש־מ־ה</div>
+          <LetterGroups stanzas={neshamaStanzas} indigo />
+        </>
+      )}
+
+      {step.id === 'leiluy-neshama' && (
+        <div className="prayer-text">{fillPrayerName(TEFILA_LEILUY_NESHAMA.hebrew, name, gender)}</div>
+      )}
+
+      {step.id === 'kaddish' && (
+        <div className="prayer-text">
+          {nusach === NUSACH.ASHKENAZI ? KADDISH_YATOM.hebrew : KADDISH_DRABBANAN.hebrew}
+        </div>
+      )}
+
+      {step.id === 'memorial-prayer' && (
+        <>
+          <div className="prayer-text">
+            {nusach === NUSACH.ASHKENAZI
+              ? fillPrayerName(EL_MALEI_RACHAMIM.hebrew, name, gender)
+              : fillPrayerName(HASHKAVA.hebrew, name, gender)}
+          </div>
+          {nusach === NUSACH.SEPHARDI && <div className="muted" style={{ fontSize: 11.5 }}>{HASHKAVA.note}</div>}
+        </>
+      )}
+
+      {step.id === 'yehi-ratzon' && (
+        <div className="prayer-text">{fillPrayerName(YEHI_RATZON_CLOSING, name, gender)}</div>
+      )}
+    </div>
+  );
+}
+
+function PsalmBlock({ psalm }) {
+  const [open, setOpen] = useState(false);
+  const preview = psalm.verses.slice(0, 1);
+  const shown = open ? psalm.verses : preview;
+  return (
+    <div style={{ background: 'var(--surface-alt)', borderRadius: 12, padding: '10px 12px' }}>
+      <div
+        onClick={() => setOpen((v) => !v)}
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 13 }}>תהילים פרק {hebrewNumeral(psalm.chapter)}</div>
+        <div className="muted" style={{ fontSize: 11.5 }}>{open ? 'צמצום ↑' : `${psalm.verses.length} פסוקים ↓`}</div>
+      </div>
+      {shown.map((v, i) => (
+        <div key={i} style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.85, marginTop: 8 }}>
+          {v}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LetterGroups({ stanzas, indigo }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {stanzas.map((s, i) => (
+        <div key={i} style={{ background: indigo ? 'var(--indigo-soft)' : 'var(--surface-alt)', borderRadius: 12, padding: '10px 12px' }}>
           <div
             style={{
-              flexShrink: 0,
               fontFamily: "'Frank Ruhl Libre', serif",
               fontWeight: 700,
               color: indigo ? 'var(--indigo)' : 'var(--gold)',
               fontSize: 14,
+              marginBottom: 6,
             }}
           >
-            {s.letter}׳
+            אות {s.letter}׳
           </div>
-          <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.7 }}>
-            {s.verses[0]}
-          </div>
+          {s.verses.map((v, vi) => (
+            <div key={vi} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              <div className="muted" style={{ fontSize: 11, flexShrink: 0, minWidth: 14 }}>{vi + 1}.</div>
+              <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.8 }}>{v}</div>
+            </div>
+          ))}
         </div>
       ))}
-      {stanzas.length > 2 && (
-        <div
-          onClick={onToggle}
-          style={{
-            textAlign: 'center',
-            fontSize: 12,
-            color: indigo ? 'var(--indigo)' : 'var(--gold)',
-            padding: 2,
-            cursor: 'pointer',
-          }}
-        >
-          {expanded ? 'הצג פחות ↑' : `הצג עוד ${stanzas.length - 2} אותיות ↓`}
-        </div>
-      )}
-    </>
+    </div>
   );
 }

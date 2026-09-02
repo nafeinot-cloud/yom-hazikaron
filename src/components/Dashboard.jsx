@@ -5,6 +5,7 @@ import { db } from '../firebase.js';
 import { absToGregorian, gregorianToAbs, hebrewMonthName, hebrewNumeral, nextYahrzeit } from '../lib/hebrewCalendar.js';
 import { displayName, honorific } from '../lib/person.js';
 import { CalendarIcon, FlameIcon, PlusIcon } from './icons.jsx';
+import FontSizeControl from './FontSizeControl.jsx';
 
 const NUSACH_LABEL = { ashkenazi: 'נוסח אשכנזי', sephardi: 'נוסח ספרדי' };
 
@@ -44,6 +45,7 @@ export default function Dashboard() {
         <div>
           <h1 style={{ fontSize: 21, fontWeight: 700 }}>לוח הזכרונות</h1>
         </div>
+        <FontSizeControl />
       </header>
 
       <main className="content">

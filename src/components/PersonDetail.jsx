@@ -5,6 +5,7 @@ import { db } from '../firebase.js';
 import { hebrewMonthName, hebrewNumeral } from '../lib/hebrewCalendar.js';
 import { displayName, honorific } from '../lib/person.js';
 import { BackIcon, BookIcon, PrayerIcon, WallIcon } from './icons.jsx';
+import FontSizeControl from './FontSizeControl.jsx';
 import MishnaTab from './MishnaTab.jsx';
 import TefilaTab from './TefilaTab.jsx';
 import MemorialWall from './MemorialWall.jsx';
@@ -50,6 +51,7 @@ export default function PersonDetail() {
               {person.burialPlace ? ` · ${person.burialPlace}` : ''}
             </div>
           </div>
+          <FontSizeControl />
         </div>
         <div className="tabs">
           {TABS.map(({ id: tabId, label, Icon }) => (

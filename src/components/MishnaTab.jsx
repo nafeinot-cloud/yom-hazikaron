@@ -1,5 +1,43 @@
 import { mishnayotForName, NESHAMA_ADDENDUM } from '../data/mishnayot.js';
 
+function emphasizeFirstLetter(text) {
+  if (!text) return null;
+  return (
+    <>
+      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{text[0]}</span>
+      {text.slice(1)}
+    </>
+  );
+}
+
+function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, needsReview, indigo }) {
+  return (
+    <div className="mishna-card">
+      <div className={`letter-badge${indigo ? ' indigo' : ''}`}>{letter}</div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700 }}>
+          {tractate}, פרק {chapter}
+          {mishna ? ` משנה ${mishna}` : ''}
+          {needsReview && <span className="muted" style={{ fontWeight: 400 }}> (לאימות)</span>}
+        </div>
+        <div
+          style={{
+            fontFamily: "'Frank Ruhl Libre', serif",
+            fontSize: 15,
+            lineHeight: 1.9,
+            margin: '6px 0 8px',
+          }}
+        >
+          {emphasizeFirstLetter(fullText)}
+        </div>
+        <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.65 }}>
+          פירוש פשוט: {commentary}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MishnaTab({ person }) {
   const entries = mishnayotForName(person.firstName);
 
@@ -7,7 +45,7 @@ export default function MishnaTab({ person }) {
     <main className="content">
       <div className="note-box">
         לכל אות בשם <b style={{ color: 'var(--text)' }}>{person.firstName}</b>, נבחרה משנה קצרה הפותחת באותה אות - מנהג לימוד
-        לעילוי נשמה, נלמד בערב או ביום יום הזכרון.
+        לעילוי נשמה, נלמד בערב או ביום יום הזכרון. האות הראשונה של כל משנה מודגשת.
       </div>
 
       <div>
@@ -16,24 +54,7 @@ export default function MishnaTab({ person }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {entries.map((entry, i) => (
-            <div className="mishna-card" key={i}>
-              <div className="letter-badge">{entry.letter}</div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>
-                  {entry.tractate}, פרק {entry.chapter}
-                  {entry.mishna ? ` משנה ${entry.mishna}` : ''}
-                  {entry.needsReview && (
-                    <span className="muted" style={{ fontWeight: 400 }}> (לאימות)</span>
-                  )}
-                </div>
-                <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 14.5, margin: '4px 0 6px' }}>
-                  ״{entry.firstWords}...״
-                </div>
-                <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.65 }}>
-                  פירוש פשוט: {entry.commentary}
-                </div>
-              </div>
-            </div>
+            <MishnaCard key={i} {...entry} />
           ))}
         </div>
       </div>
@@ -46,21 +67,24 @@ export default function MishnaTab({ person }) {
           נהוג להוסיף בסיום הלימוד את שבע משניות פרק {NESHAMA_ADDENDUM.chapter}׳ במסכת {NESHAMA_ADDENDUM.tractate} במלואן
           (ולא לפי אותיות) — לעילוי נשמה, מפני שאותיות ״משנה״ הן צירוף אותיות ״נשמה״.
         </div>
-        <div className="mishna-card">
-          <div className="letter-badge indigo" style={{ width: 'auto', padding: '0 10px', fontSize: 14 }}>
-            {NESHAMA_ADDENDUM.tractate}
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>
-              {NESHAMA_ADDENDUM.tractate}, פרק {NESHAMA_ADDENDUM.chapter}׳, משניות א׳–ז׳
-            </div>
-            <div className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>{NESHAMA_ADDENDUM.note}</div>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {NESHAMA_ADDENDUM.mishnayot.map((m, i) => (
+            <MishnaCard
+              key={i}
+              letter={m.mishna}
+              tractate={NESHAMA_ADDENDUM.tractate}
+              chapter={NESHAMA_ADDENDUM.chapter}
+              mishna={m.mishna}
+              fullText={m.fullText}
+              commentary={m.commentary}
+              indigo
+            />
+          ))}
         </div>
       </div>
 
       <div className="disclaimer">
-        התוכן להמחשה בלבד. לפני שילוב באפליקציה מומלץ לבדוק את הנוסח מול רב או מקור הלכתי מוסמך.
+        התוכן מבוסס על טקסט המשנה המקורי (ספריא) ופירוש פשוט מקורי. לפני שימוש מומלץ לבדוק מול רב או מקור הלכתי מוסמך.
       </div>
     </main>
   );
