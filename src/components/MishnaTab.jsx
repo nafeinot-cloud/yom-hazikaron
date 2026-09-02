@@ -10,7 +10,7 @@ function emphasizeFirstLetter(text) {
   );
 }
 
-function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, needsReview, indigo }) {
+function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, indigo }) {
   return (
     <div className="mishna-card">
       <div className={`letter-badge${indigo ? ' indigo' : ''}`}>{letter}</div>
@@ -18,7 +18,6 @@ function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, n
         <div style={{ fontSize: 13, fontWeight: 700 }}>
           {tractate}, פרק {chapter}
           {mishna ? ` משנה ${mishna}` : ''}
-          {needsReview && <span className="muted" style={{ fontWeight: 400 }}> (לאימות)</span>}
         </div>
         <div
           style={{
@@ -64,14 +63,14 @@ export default function MishnaTab({ person }) {
           לעילוי נשמה — מסכת {NESHAMA_ADDENDUM.tractate}, פרק {NESHAMA_ADDENDUM.chapter}
         </div>
         <div className="note-box" style={{ background: 'var(--indigo-soft)', marginBottom: 10 }}>
-          נהוג להוסיף בסיום הלימוד את שבע משניות פרק {NESHAMA_ADDENDUM.chapter}׳ במסכת {NESHAMA_ADDENDUM.tractate} במלואן
-          (ולא לפי אותיות) — לעילוי נשמה, מפני שאותיות ״משנה״ הן צירוף אותיות ״נשמה״.
+          נהוג ללמוד בסיום את משניות ד׳-ז׳ בפרק {NESHAMA_ADDENDUM.chapter}׳ במסכת {NESHAMA_ADDENDUM.tractate} - שאותיותיהן
+          הפותחות מאייתות בעצמן נ-ש-מ-ה, מפני שאותיות ״משנה״ הן צירוף אותיות ״נשמה״.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {NESHAMA_ADDENDUM.mishnayot.map((m, i) => (
             <MishnaCard
               key={i}
-              letter={m.mishna}
+              letter={m.letter}
               tractate={NESHAMA_ADDENDUM.tractate}
               chapter={NESHAMA_ADDENDUM.chapter}
               mishna={m.mishna}
@@ -81,10 +80,6 @@ export default function MishnaTab({ person }) {
             />
           ))}
         </div>
-      </div>
-
-      <div className="disclaimer">
-        התוכן מבוסס על טקסט המשנה המקורי (ספריא) ופירוש פשוט מקורי. לפני שימוש מומלץ לבדוק מול רב או מקור הלכתי מוסמך.
       </div>
     </main>
   );

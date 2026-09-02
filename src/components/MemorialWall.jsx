@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import { onAuthStateChanged, signInWithPopup } from 'firebase/auth';
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, googleProvider, storage } from '../firebase.js';
 import { WallIcon } from './icons.jsx';
@@ -20,12 +20,20 @@ function timeAgo(date) {
 export default function MemorialWall({ person }) {
   const [user, setUser] = useState(undefined); // undefined = loading, null = signed out
   const [posts, setPosts] = useState(null);
+  const [authorName, setAuthorName] = useState('');
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
   const [imageLink, setImageLink] = useState('');
   const [posting, setPosting] = useState(false);
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(
+    () =>
+      onAuthStateChanged(auth, (u) => {
+        setUser(u);
+        if (u) setAuthorName((prev) => prev || u.displayName || '');
+      }),
+    []
+  );
 
   useEffect(() => {
     const q = query(collection(db, 'people', person.id, 'posts'), orderBy('createdAt', 'desc'));
@@ -58,7 +66,7 @@ export default function MemorialWall({ person }) {
       await addDoc(collection(db, 'people', person.id, 'posts'), {
         text: text.trim(),
         imageUrl,
-        authorName: user.displayName ?? 'אנונימי',
+        authorName: authorName.trim() || 'אנונימי',
         authorUid: user.uid,
         createdAt: serverTimestamp(),
       });
@@ -86,6 +94,14 @@ export default function MemorialWall({ person }) {
 
       {user && (
         <div className="composer">
+          <input
+            className="field-input"
+            type="text"
+            placeholder="השם שלך (יוצג ליד הפוסט)"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            style={{ fontSize: 12.5 }}
+          />
           <textarea
             placeholder="שתפו זיכרון, מחשבה או תמונה..."
             value={text}
@@ -108,7 +124,7 @@ export default function MemorialWall({ person }) {
           {!image && (
             <input
               className="field-input"
-              type="url"
+              type="text"
               placeholder="או הדביקו קישור ישיר לתמונה"
               value={imageLink}
               onChange={(e) => setImageLink(e.target.value)}
@@ -128,33 +144,97 @@ export default function MemorialWall({ person }) {
       {posts && posts.length === 0 && <div className="muted center-pad">עדיין אין פוסטים. היו הראשונים לשתף זיכרון.</div>}
       {posts &&
         posts.map((post) => (
-          <div className="post-card" key={post.id}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div className="post-avatar">{post.authorName?.slice(0, 2) ?? '?'}</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{post.authorName}</div>
-                <div className="muted" style={{ fontSize: 11 }}>{timeAgo(post.createdAt?.toDate?.())}</div>
-              </div>
-            </div>
-            {post.text && <div style={{ fontSize: 13, lineHeight: 1.7 }}>{post.text}</div>}
-            {post.imageUrl && (
-              <img
-                className="post-photo"
-                src={post.imageUrl}
-                alt=""
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextSibling.style.display = 'block';
-                }}
-              />
-            )}
-            {post.imageUrl && (
-              <div className="muted" style={{ display: 'none', fontSize: 11.5 }}>
-                לא ניתן לטעון את התמונה מהקישור שסופק.
-              </div>
-            )}
-          </div>
+          <PostCard key={post.id} post={post} personId={person.id} currentUid={user?.uid} />
         ))}
     </main>
+  );
+}
+
+function PostCard({ post, personId, currentUid }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(post.text ?? '');
+  const [saving, setSaving] = useState(false);
+  const isOwner = currentUid && post.authorUid === currentUid;
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'people', personId, 'posts', post.id), { text: draft.trim() });
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('למחוק את הפוסט הזה?')) return;
+    await deleteDoc(doc(db, 'people', personId, 'posts', post.id));
+  }
+
+  return (
+    <div className="post-card">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="post-avatar">{post.authorName?.slice(0, 2) ?? '?'}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>{post.authorName}</div>
+          <div className="muted" style={{ fontSize: 11 }}>{timeAgo(post.createdAt?.toDate?.())}</div>
+        </div>
+        {isOwner && !editing && (
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => {
+                setDraft(post.text ?? '');
+                setEditing(true);
+              }}
+              className="muted"
+              style={{ background: 'none', border: 'none', fontSize: 12, cursor: 'pointer' }}
+            >
+              עריכה
+            </button>
+            <button onClick={handleDelete} className="muted" style={{ background: 'none', border: 'none', fontSize: 12, cursor: 'pointer' }}>
+              מחיקה
+            </button>
+          </div>
+        )}
+      </div>
+
+      {editing ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <textarea
+            className="field-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            style={{ minHeight: 60 }}
+          />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button onClick={() => setEditing(false)} className="btn-secondary" style={{ width: 'auto', padding: '6px 14px', fontSize: 12 }}>
+              ביטול
+            </button>
+            <button onClick={handleSave} className="btn-primary" style={{ width: 'auto', padding: '6px 14px', fontSize: 12 }} disabled={saving}>
+              {saving ? 'שומר...' : 'שמירה'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        post.text && <div style={{ fontSize: 13, lineHeight: 1.7 }}>{post.text}</div>
+      )}
+
+      {post.imageUrl && (
+        <img
+          className="post-photo"
+          src={post.imageUrl}
+          alt=""
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextSibling.style.display = 'block';
+          }}
+        />
+      )}
+      {post.imageUrl && (
+        <div className="muted" style={{ display: 'none', fontSize: 11.5 }}>
+          לא ניתן לטעון את התמונה מהקישור שסופק.
+        </div>
+      )}
+    </div>
   );
 }

@@ -58,10 +58,6 @@ export default function TefilaTab({ person }) {
           neshamaStanzas={neshamaStanzas}
         />
       ))}
-
-      <div className="disclaimer">
-        נוסח אשכנזי אומת מול המשפחה; נוסח ספרדי מבוסס על kadisha.org/prayers-by-name. לפני שימוש בפועל מומלץ לוודא מול רב או סידור מוסמך.
-      </div>
     </main>
   );
 }
@@ -124,14 +120,11 @@ function StepCard({ num, step, nusach, name, gender, firstName, nameStanzas, nes
       )}
 
       {step.id === 'memorial-prayer' && (
-        <>
-          <div className="prayer-text">
-            {nusach === NUSACH.ASHKENAZI
-              ? fillPrayerName(EL_MALEI_RACHAMIM.hebrew, name, gender)
-              : fillPrayerName(HASHKAVA.hebrew, name, gender)}
-          </div>
-          {nusach === NUSACH.SEPHARDI && <div className="muted" style={{ fontSize: 11.5 }}>{HASHKAVA.note}</div>}
-        </>
+        <div className="prayer-text">
+          {nusach === NUSACH.ASHKENAZI
+            ? fillPrayerName(EL_MALEI_RACHAMIM.hebrew, name, gender)
+            : fillPrayerName(HASHKAVA.hebrew, name, gender)}
+        </div>
       )}
 
       {step.id === 'yehi-ratzon' && (
@@ -142,23 +135,15 @@ function StepCard({ num, step, nusach, name, gender, firstName, nameStanzas, nes
 }
 
 function PsalmBlock({ psalm }) {
-  const [open, setOpen] = useState(false);
-  const preview = psalm.verses.slice(0, 1);
-  const shown = open ? psalm.verses : preview;
   return (
     <div style={{ background: 'var(--surface-alt)', borderRadius: 12, padding: '10px 12px' }}>
-      <div
-        onClick={() => setOpen((v) => !v)}
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontWeight: 700, fontSize: 13 }}>תהילים פרק {hebrewNumeral(psalm.chapter)}</div>
-        <div className="muted" style={{ fontSize: 11.5 }}>{open ? 'צמצום ↑' : `${psalm.verses.length} פסוקים ↓`}</div>
+        <div className="muted" style={{ fontSize: 11.5 }}>{psalm.verses.length} פסוקים</div>
       </div>
-      {shown.map((v, i) => (
-        <div key={i} style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.85, marginTop: 8 }}>
-          {v}
-        </div>
-      ))}
+      <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.85, marginTop: 8 }}>
+        {psalm.verses.join(' ')}
+      </div>
     </div>
   );
 }
