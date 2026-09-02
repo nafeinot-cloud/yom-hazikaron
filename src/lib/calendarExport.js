@@ -1,17 +1,5 @@
 import { absToGregorian, nextYahrzeit } from './hebrewCalendar.js';
 
-/** The next `count` Gregorian occurrences (as abs day numbers) of a yahrzeit. */
-function nextOccurrences(hebrewMonth, hebrewDay, fromAbs, count) {
-  const out = [];
-  let cursor = fromAbs;
-  for (let i = 0; i < count; i++) {
-    const abs = nextYahrzeit(hebrewMonth, hebrewDay, cursor);
-    out.push(abs);
-    cursor = abs + 1;
-  }
-  return out;
-}
-
 function pad(n) {
   return String(n).padStart(2, '0');
 }
@@ -33,35 +21,31 @@ function escapeIcsText(text) {
 }
 
 /**
- * Builds an .ics file (multiple all-day VEVENTs, one per upcoming Hebrew-
- * calendar yahrzeit occurrence) for a person, since the Gregorian date
- * shifts every year — a plain yearly RRULE would not track it correctly.
+ * Builds an .ics file with a single all-day event for the person's next
+ * upcoming yahrzeit (Gregorian date). Deliberately a single, non-repeating
+ * occurrence: the Hebrew date's Gregorian equivalent shifts every year, so a
+ * yearly-recurring calendar event would silently go wrong in later years.
  */
-export function buildYahrzeitIcs(person, { fromAbs, years = 7 } = {}) {
-  const occurrences = nextOccurrences(person.hebrewMonth, person.hebrewDay, fromAbs, years);
+export function buildYahrzeitIcs(person, { fromAbs } = {}) {
+  const abs = nextYahrzeit(person.hebrewMonth, person.hebrewDay, fromAbs);
   const name = person.displayName ?? person.firstName;
   const stamp = icsDateTimeStampUTC();
 
-  const events = occurrences
-    .map((abs, i) => {
-      const g = absToGregorian(abs);
-      const start = icsDate(g);
-      const endAbs = absToGregorian(abs + 1);
-      const end = icsDate(endAbs);
-      return [
-        'BEGIN:VEVENT',
-        `UID:yahrzeit-${person.id}-${start}@yom-hazikaron`,
-        `DTSTAMP:${stamp}`,
-        `DTSTART;VALUE=DATE:${start}`,
-        `DTEND;VALUE=DATE:${end}`,
-        `SUMMARY:${escapeIcsText(`יום הזכרון - ${name}`)}`,
-        `DESCRIPTION:${escapeIcsText(`יום הזכרון השנתי (${i + 1} מתוך ${years} תזכורות שנוספו)`)}`,
-        'END:VEVENT',
-      ].join('\r\n');
-    })
-    .join('\r\n');
+  const start = icsDate(absToGregorian(abs));
+  const end = icsDate(absToGregorian(abs + 1));
 
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//יום הזכרון//HE', 'CALSCALE:GREGORIAN', events, 'END:VCALENDAR'].join(
+  const event = [
+    'BEGIN:VEVENT',
+    `UID:yahrzeit-${person.id}-${start}@yom-hazikaron`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART;VALUE=DATE:${start}`,
+    `DTEND;VALUE=DATE:${end}`,
+    `SUMMARY:${escapeIcsText(`יום הזכרון - ${name}`)}`,
+    `DESCRIPTION:${escapeIcsText('התאריך הלועזי משתנה משנה לשנה לפי הלוח העברי - יש לעדכן שוב בכל שנה.')}`,
+    'END:VEVENT',
+  ].join('\r\n');
+
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//יום הזכרון//HE', 'CALSCALE:GREGORIAN', event, 'END:VCALENDAR'].join(
     '\r\n'
   );
 }
