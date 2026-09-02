@@ -78,3 +78,28 @@ export function ChevronDownIcon(props) {
     </svg>
   );
 }
+
+export function HeartIcon(props) {
+  return (
+    <svg {...base} width={props.size ?? 17} height={props.size ?? 17} {...props}>
+      <path d="M12 20.5c-.3 0-.6-.1-.8-.3C7 16.6 4 13.9 4 10.5 4 7.9 6 6 8.5 6c1.3 0 2.6.6 3.5 1.7C12.9 6.6 14.2 6 15.5 6 18 6 20 7.9 20 10.5c0 3.4-3 6.1-7.2 9.7-.2.2-.5.3-.8.3Z" />
+    </svg>
+  );
+}
+
+export function SmileIcon(props) {
+  return (
+    <svg {...base} width={props.size ?? 17} height={props.size ?? 17} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 10.5h.01M15.5 10.5h.01M8 14.5c1 1.2 2.4 1.8 4 1.8s3-.6 4-1.8" />
+    </svg>
+  );
+}
+
+export function CommentIcon(props) {
+  return (
+    <svg {...base} width={props.size ?? 17} height={props.size ?? 17} {...props}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v9A2.5 2.5 0 0 1 17.5 17H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 14.5v-9Z" />
+    </svg>
+  );
+}

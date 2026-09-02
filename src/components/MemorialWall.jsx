@@ -1,9 +1,33 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup } from 'firebase/auth';
-import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, googleProvider, storage } from '../firebase.js';
-import { WallIcon } from './icons.jsx';
+import { CommentIcon, FlameIcon, HeartIcon, SmileIcon, WallIcon } from './icons.jsx';
+
+const REACTION_TYPES = [
+  { id: 'candle', Icon: FlameIcon, label: 'הדלקת נר' },
+  { id: 'heart', Icon: HeartIcon, label: 'אהבה' },
+  { id: 'smile', Icon: SmileIcon, label: 'זיכרון טוב' },
+];
+
+// Hosts known to return a viewer PAGE rather than the image file itself —
+// pasting these here will silently fail to render.
+const NON_DIRECT_LINK_HOSTS = ['photos.app.goo.gl', 'photos.google.com', 'drive.google.com', 'goo.gl'];
+
+function looksLikeNonDirectLink(url) {
+  return NON_DIRECT_LINK_HOSTS.some((host) => url.includes(host));
+}
 
 function timeAgo(date) {
   if (!date) return '';
@@ -68,6 +92,7 @@ export default function MemorialWall({ person }) {
         imageUrl,
         authorName: authorName.trim() || 'אנונימי',
         authorUid: user.uid,
+        reactions: {},
         createdAt: serverTimestamp(),
       });
       setText('');
@@ -77,6 +102,8 @@ export default function MemorialWall({ person }) {
       setPosting(false);
     }
   }
+
+  const linkWarning = imageLink.trim() && looksLikeNonDirectLink(imageLink);
 
   return (
     <main className="content">
@@ -122,14 +149,22 @@ export default function MemorialWall({ person }) {
           </label>
 
           {!image && (
-            <input
-              className="field-input"
-              type="text"
-              placeholder="או הדביקו קישור ישיר לתמונה"
-              value={imageLink}
-              onChange={(e) => setImageLink(e.target.value)}
-              style={{ fontSize: 12.5 }}
-            />
+            <div>
+              <input
+                className="field-input"
+                type="text"
+                placeholder="או הדביקו קישור ישיר לתמונה (לא קישור שיתוף)"
+                value={imageLink}
+                onChange={(e) => setImageLink(e.target.value)}
+                style={{ fontSize: 12.5 }}
+              />
+              {linkWarning && (
+                <div className="note-box" style={{ marginTop: 6, fontSize: 11.5, background: 'var(--indigo-soft)' }}>
+                  קישור מסוג זה (כמו Google Photos) בדרך כלל לא יעבוד - הוא מוביל לעמוד צפייה ולא לקובץ התמונה עצמו.
+                  עדיף להשתמש ב"בחירת תמונה מהגלריה" למעלה.
+                </div>
+              )}
+            </div>
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -144,17 +179,30 @@ export default function MemorialWall({ person }) {
       {posts && posts.length === 0 && <div className="muted center-pad">עדיין אין פוסטים. היו הראשונים לשתף זיכרון.</div>}
       {posts &&
         posts.map((post) => (
-          <PostCard key={post.id} post={post} personId={person.id} currentUid={user?.uid} />
+          <PostCard key={post.id} post={post} personId={person.id} currentUid={user?.uid} authorName={authorName} />
         ))}
     </main>
   );
 }
 
-function PostCard({ post, personId, currentUid }) {
+function PostCard({ post, personId, currentUid, authorName }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.text ?? '');
   const [saving, setSaving] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const isOwner = currentUid && post.authorUid === currentUid;
+  const reactions = post.reactions ?? {};
+
+  async function toggleReaction(type) {
+    if (!currentUid) return;
+    const next = {};
+    for (const { id } of REACTION_TYPES) {
+      next[id] = (reactions[id] ?? []).filter((uid) => uid !== currentUid);
+    }
+    const alreadyActive = (reactions[type] ?? []).includes(currentUid);
+    if (!alreadyActive) next[type] = [...next[type], currentUid];
+    await updateDoc(doc(db, 'people', personId, 'posts', post.id), { reactions: next });
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -170,6 +218,8 @@ function PostCard({ post, personId, currentUid }) {
     if (!confirm('למחוק את הפוסט הזה?')) return;
     await deleteDoc(doc(db, 'people', personId, 'posts', post.id));
   }
+
+  const commentCount = post.commentCount; // optional future denormalized count; falls back to live list below
 
   return (
     <div className="post-card">
@@ -232,7 +282,125 @@ function PostCard({ post, personId, currentUid }) {
       )}
       {post.imageUrl && (
         <div className="muted" style={{ display: 'none', fontSize: 11.5 }}>
-          לא ניתן לטעון את התמונה מהקישור שסופק.
+          לא ניתן להציג את התמונה כאן (ייתכן שזה קישור שיתוף ולא קישור ישיר) - אפשר לפתוח אותה בקישור:{' '}
+          <a href={post.imageUrl} target="_blank" rel="noopener noreferrer">
+            {post.imageUrl}
+          </a>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', paddingTop: 4, borderTop: '1px solid var(--border)', marginTop: 2 }}>
+        {REACTION_TYPES.map(({ id, Icon, label }) => {
+          const count = (reactions[id] ?? []).length;
+          const active = currentUid && (reactions[id] ?? []).includes(currentUid);
+          return (
+            <button
+              key={id}
+              onClick={() => toggleReaction(id)}
+              disabled={!currentUid}
+              title={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                background: 'none',
+                border: 'none',
+                cursor: currentUid ? 'pointer' : 'default',
+                color: active ? 'var(--gold)' : 'var(--text-soft)',
+                fontSize: 12,
+                padding: 0,
+              }}
+            >
+              <Icon size={16} />
+              {count > 0 && count}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setShowComments((v) => !v)}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-soft)', fontSize: 12, marginInlineStart: 'auto' }}
+        >
+          <CommentIcon size={16} />
+          תגובות
+        </button>
+      </div>
+
+      {showComments && <CommentsSection personId={personId} postId={post.id} currentUid={currentUid} authorName={authorName} />}
+    </div>
+  );
+}
+
+function CommentsSection({ personId, postId, currentUid, authorName }) {
+  const [comments, setComments] = useState(null);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const q = query(collection(db, 'people', personId, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'));
+    return onSnapshot(q, (snap) => setComments(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+  }, [personId, postId]);
+
+  async function handleSend() {
+    if (!currentUid || !draft.trim()) return;
+    setSending(true);
+    try {
+      await addDoc(collection(db, 'people', personId, 'posts', postId, 'comments'), {
+        text: draft.trim(),
+        authorName: authorName?.trim() || 'אנונימי',
+        authorUid: currentUid,
+        createdAt: serverTimestamp(),
+      });
+      setDraft('');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleDeleteComment(commentId) {
+    await deleteDoc(doc(db, 'people', personId, 'posts', postId, 'comments', commentId));
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
+      {comments === null && <div className="muted" style={{ fontSize: 11.5 }}>טוען תגובות...</div>}
+      {comments &&
+        comments.map((c) => (
+          <div key={c.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+            <div className="post-avatar" style={{ width: 24, height: 24, fontSize: 10 }}>{c.authorName?.slice(0, 2) ?? '?'}</div>
+            <div style={{ flex: 1, background: 'var(--surface-alt)', borderRadius: 10, padding: '6px 10px' }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700 }}>{c.authorName}</div>
+              <div style={{ fontSize: 12.5 }}>{c.text}</div>
+            </div>
+            {currentUid === c.authorUid && (
+              <button
+                onClick={() => handleDeleteComment(c.id)}
+                className="muted"
+                style={{ background: 'none', border: 'none', fontSize: 11, cursor: 'pointer' }}
+              >
+                מחיקה
+              </button>
+            )}
+          </div>
+        ))}
+      {currentUid && (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input
+            className="field-input"
+            type="text"
+            placeholder="הוספת תגובה..."
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            style={{ fontSize: 12.5 }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !draft.trim()}
+            className="btn-primary"
+            style={{ width: 'auto', padding: '8px 14px', fontSize: 12 }}
+          >
+            שליחה
+          </button>
         </div>
       )}
     </div>
