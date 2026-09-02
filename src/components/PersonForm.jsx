@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { gregorianToHebrew, hebrewNumeral, monthsInDisplayOrder } from '../lib/hebrewCalendar.js';
 import { BackIcon } from './icons.jsx';
@@ -24,6 +24,7 @@ export default function PersonForm() {
   const [burialPlace, setBurialPlace] = useState('');
   const [gregInput, setGregInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!editing) return;
@@ -85,6 +86,17 @@ export default function PersonForm() {
       navigate('/');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`למחוק את ${firstName} מהרשימה? פעולה זו אינה הפיכה (תוכן שכבר פורסם בעמוד הזיכרון שלו/שלה יישאר בלתי נגיש).`)) return;
+    setDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'people', id));
+      navigate('/');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -226,6 +238,29 @@ export default function PersonForm() {
         <button type="submit" className="btn-primary" style={{ marginTop: 6 }} disabled={saving}>
           {saving ? 'שומר...' : 'שמירה'}
         </button>
+
+        {editing && (
+          <>
+            <div className="divider" style={{ marginTop: 10 }} />
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                width: '100%',
+                background: 'none',
+                border: '1.5px solid oklch(60% 0.14 25)',
+                color: 'oklch(50% 0.14 25)',
+                borderRadius: 'var(--radius-md)',
+                padding: 13,
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              {deleting ? 'מוחק...' : 'מחיקת יקיר מהרשימה'}
+            </button>
+          </>
+        )}
       </form>
     </div>
   );

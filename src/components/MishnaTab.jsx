@@ -1,4 +1,5 @@
 import { mishnayotForName, NESHAMA_ADDENDUM } from '../data/mishnayot.js';
+import { hebrewNumeral } from '../lib/hebrewCalendar.js';
 
 function emphasizeFirstLetter(text) {
   if (!text) return null;
@@ -17,7 +18,7 @@ function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, i
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 700 }}>
           {tractate}, פרק {chapter}
-          {mishna ? ` משנה ${mishna}` : ''}
+          {mishna ? ` משנה ${hebrewNumeral(mishna)}` : ''}
         </div>
         <div
           style={{

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { absToGregorian, gregorianToAbs, hebrewMonthName, hebrewNumeral, nextYahrzeit } from '../lib/hebrewCalendar.js';
 import { displayName, honorific } from '../lib/person.js';
-import { CalendarIcon, FlameIcon, PlusIcon } from './icons.jsx';
+import { buildYahrzeitIcs, downloadIcs } from '../lib/calendarExport.js';
+import { AppFlameIcon, CalendarPlusIcon, CalendarIcon, EditIcon, PlusIcon } from './icons.jsx';
 import FontSizeControl from './FontSizeControl.jsx';
 
 const NUSACH_LABEL = { ashkenazi: 'נוסח אשכנזי', sephardi: 'נוסח ספרדי' };
@@ -17,6 +18,7 @@ function formatGregorian({ year, month, day }) {
 
 export default function Dashboard() {
   const [people, setPeople] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const q = query(collection(db, 'people'), orderBy('firstName'));
@@ -36,11 +38,26 @@ export default function Dashboard() {
       .sort((a, b) => a.nextAbs - b.nextAbs);
   }, [people]);
 
+  function handleEdit(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/edit/${id}`);
+  }
+
+  function handleAddToCalendar(e, p) {
+    e.preventDefault();
+    e.stopPropagation();
+    const todayAbs = gregorianToAbs(...Object.values(todayYMD()));
+    const ics = buildYahrzeitIcs(p, { fromAbs: todayAbs });
+    const safeName = displayName(p).replace(/[^\wא-ת]+/g, '-');
+    downloadIcs(`יום-הזכרון-${safeName}.ics`, ics);
+  }
+
   return (
     <div className="screen">
       <header className="topbar">
         <div className="topbar-icon">
-          <FlameIcon size={20} />
+          <AppFlameIcon size={20} />
         </div>
         <div>
           <h1 style={{ fontSize: 21, fontWeight: 700 }}>לוח הזכרונות</h1>
@@ -71,9 +88,17 @@ export default function Dashboard() {
                   <div className="person-date-greg">יחול השנה: {formatGregorian(absToGregorian(p.nextAbs))}</div>
                   <div className="nusach-tag">{NUSACH_LABEL[p.nusach] ?? NUSACH_LABEL.ashkenazi}</div>
                 </div>
-                <div className={`days-badge${i === 0 ? ' gold' : ''}`}>
-                  <div className="days-num">{p.daysUntil}</div>
-                  <div className="days-label">ימים</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <div className={`days-badge${i === 0 ? ' gold' : ''}`}>
+                    <div className="days-num">{p.daysUntil}</div>
+                    <div className="days-label">ימים</div>
+                  </div>
+                  <button onClick={(e) => handleAddToCalendar(e, p)} aria-label="הוספה ליומן" className="card-action-btn">
+                    <CalendarPlusIcon size={15} />
+                  </button>
+                  <button onClick={(e) => handleEdit(e, p.id)} aria-label="עריכה" className="card-action-btn">
+                    <EditIcon size={15} />
+                  </button>
                 </div>
               </Link>
             ))}

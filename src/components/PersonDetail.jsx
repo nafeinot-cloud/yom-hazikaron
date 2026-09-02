@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { hebrewMonthName, hebrewNumeral } from '../lib/hebrewCalendar.js';
@@ -19,7 +19,12 @@ const TABS = [
 export default function PersonDetail() {
   const { id } = useParams();
   const [person, setPerson] = useState(null);
-  const [tab, setTab] = useState('mishna');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const tab = TABS.some((t) => t.id === requestedTab) ? requestedTab : 'mishna';
+  function setTab(next) {
+    setSearchParams(next === 'mishna' ? {} : { tab: next }, { replace: true });
+  }
 
   useEffect(() => {
     getDoc(doc(db, 'people', id)).then((snap) => {

@@ -13,7 +13,8 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, googleProvider, storage } from '../firebase.js';
-import { CandleIcon, CommentIcon, HeartIcon, SmileIcon, WallIcon } from './icons.jsx';
+import { displayName as personDisplayName } from '../lib/person.js';
+import { CandleIcon, CommentIcon, HeartIcon, SmileIcon, WallIcon, WhatsAppIcon } from './icons.jsx';
 
 const REACTION_TYPES = [
   { id: 'candle', Icon: CandleIcon, label: 'הדלקת נר' },
@@ -179,13 +180,14 @@ export default function MemorialWall({ person }) {
       {posts && posts.length === 0 && <div className="muted center-pad">עדיין אין פוסטים. היו הראשונים לשתף זיכרון.</div>}
       {posts &&
         posts.map((post) => (
-          <PostCard key={post.id} post={post} personId={person.id} currentUid={user?.uid} authorName={authorName} />
+          <PostCard key={post.id} post={post} person={person} currentUid={user?.uid} authorName={authorName} />
         ))}
     </main>
   );
 }
 
-function PostCard({ post, personId, currentUid, authorName }) {
+function PostCard({ post, person, currentUid, authorName }) {
+  const personId = person.id;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.text ?? '');
   const [saving, setSaving] = useState(false);
@@ -217,6 +219,13 @@ function PostCard({ post, personId, currentUid, authorName }) {
   async function handleDelete() {
     if (!confirm('למחוק את הפוסט הזה?')) return;
     await deleteDoc(doc(db, 'people', personId, 'posts', post.id));
+  }
+
+  function handleShareWhatsApp() {
+    const wallUrl = `${location.origin}${location.pathname}#/person/${personId}?tab=wall`;
+    const snippet = post.text?.trim() ? `"${post.text.trim().slice(0, 120)}"` : 'תמונה וזיכרון חדשים';
+    const message = `${post.authorName ?? 'מישהו מהמשפחה'} פרסם/ה בעמוד הזיכרון של ${personDisplayName(person)}:\n${snippet}\n\nלצפייה: ${wallUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
   const commentCount = post.commentCount; // optional future denormalized count; falls back to live list below
@@ -322,6 +331,14 @@ function PostCard({ post, personId, currentUid, authorName }) {
         >
           <CommentIcon size={16} />
           תגובות
+        </button>
+        <button
+          onClick={handleShareWhatsApp}
+          title="שיתוף בווטסאפ"
+          aria-label="שיתוף בווטסאפ"
+          style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-soft)' }}
+        >
+          <WhatsAppIcon size={17} />
         </button>
       </div>
 

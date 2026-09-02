@@ -160,6 +160,23 @@
   opacity: 0.4;
 }
 
+.card-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-action-btn:hover {
+  color: var(--text);
+  border-color: var(--text-soft);
+}
+
 .fab {
   position: fixed;
   bottom: 24px;
