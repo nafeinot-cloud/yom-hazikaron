@@ -13,10 +13,10 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, googleProvider, storage } from '../firebase.js';
-import { CommentIcon, FlameIcon, HeartIcon, SmileIcon, WallIcon } from './icons.jsx';
+import { CandleIcon, CommentIcon, HeartIcon, SmileIcon, WallIcon } from './icons.jsx';
 
 const REACTION_TYPES = [
-  { id: 'candle', Icon: FlameIcon, label: 'הדלקת נר' },
+  { id: 'candle', Icon: CandleIcon, label: 'הדלקת נר' },
   { id: 'heart', Icon: HeartIcon, label: 'אהבה' },
   { id: 'smile', Icon: SmileIcon, label: 'זיכרון טוב' },
 ];

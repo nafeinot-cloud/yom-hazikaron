@@ -18,6 +18,22 @@ export function FlameIcon(props) {
   );
 }
 
+// A filled candle-with-flame glyph — unambiguous even at small reaction-
+// button sizes (unlike a bare flame outline, which can read as a leaf or
+// droplet). Solid silhouette in currentColor, no stroke.
+export function CandleIcon(props) {
+  const size = props.size ?? 17;
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" stroke="none" {...props}>
+      <g transform="translate(12 7) scale(0.46)">
+        <path d="M12 1.5C8.5 6 5.5 9.5 5.5 14C5.5 19 8.2 22.5 12 22.5C15.8 22.5 18.5 19.3 18.5 14.5C18.5 10.5 16 8 13.8 6C14.5 8.5 13.5 10 12 9C11 8.3 12 5 12 1.5Z" transform="translate(-12 -12)" />
+      </g>
+      <rect x="9.3" y="12.5" width="5.4" height="9" rx="1" />
+      <rect x="8.7" y="12" width="6.6" height="1.6" rx="0.8" />
+    </svg>
+  );
+}
+
 export function CalendarIcon(props) {
   return (
     <svg {...base} width={props.size ?? 15} height={props.size ?? 15} {...props}>

@@ -137,11 +137,8 @@ function StepCard({ num, step, nusach, name, gender, firstName, nameStanzas, nes
 function PsalmBlock({ psalm }) {
   return (
     <div style={{ background: 'var(--surface-alt)', borderRadius: 12, padding: '10px 12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontWeight: 700, fontSize: 13 }}>תהילים פרק {hebrewNumeral(psalm.chapter)}</div>
-        <div className="muted" style={{ fontSize: 11.5 }}>{psalm.verses.length} פסוקים</div>
-      </div>
-      <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.85, marginTop: 8 }}>
+      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>תהילים פרק {hebrewNumeral(psalm.chapter)}</div>
+      <div style={{ fontFamily: "'Heebo', sans-serif", fontSize: 14, lineHeight: 1.9, textAlign: 'justify' }}>
         {psalm.verses.join(' ')}
       </div>
     </div>
@@ -165,9 +162,8 @@ function LetterGroups({ stanzas, indigo }) {
             אות {s.letter}׳
           </div>
           {s.verses.map((v, vi) => (
-            <div key={vi} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-              <div className="muted" style={{ fontSize: 11, flexShrink: 0, minWidth: 14 }}>{vi + 1}.</div>
-              <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 13.5, lineHeight: 1.8 }}>{v}</div>
+            <div key={vi} style={{ fontFamily: "'Heebo', sans-serif", fontSize: 14, lineHeight: 1.9, textAlign: 'justify', marginBottom: 4 }}>
+              {v}
             </div>
           ))}
         </div>
