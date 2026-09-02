@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// This app is meant for one family sharing one private link — there is no
+// per-user login for the yahrzeit list itself, only for adding content to
+// a memorial wall (so posts are attributed to a real Google account).
+// The list is therefore open read/write; tighten this (e.g. require
+// request.auth on the "people" collection too) if you want to restrict who
+// can add/edit family members.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /people/{personId} {
+      allow read: if true;
+      allow create, update: if isValidPerson(request.resource.data);
+      allow delete: if true;
+
+      match /posts/{postId} {
+        allow read: if true;
+        allow create: if request.auth != null && isValidPost(request.resource.data);
+        // Only the post's own author (or the person who signed in) may remove it.
+        allow delete: if request.auth != null && request.auth.uid == resource.data.authorUid;
+        allow update: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+function isValidPerson(data) {
+  return data.fullName is string && data.fullName.size() > 0 && data.fullName.size() < 200
+    && data.firstName is string && data.firstName.size() > 0 && data.firstName.size() < 100
+    && data.hebrewDay is int && data.hebrewDay >= 1 && data.hebrewDay <= 30
+    && data.hebrewMonth is int && data.hebrewMonth >= 1 && data.hebrewMonth <= 13
+    && data.hebrewYear is int
+    && data.nusach in ['ashkenazi', 'sephardi'];
+}
+
+function isValidPost(data) {
+  return data.authorUid == request.auth.uid
+    && (data.text is string && data.text.size() < 2000)
+    && (data.imageUrl == null || data.imageUrl is string);
+}

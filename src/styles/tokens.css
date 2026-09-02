@@ -1,0 +1,60 @@
+:root {
+  --bg: oklch(97.5% 0.015 75);
+  --surface: oklch(99% 0.005 75);
+  --surface-alt: oklch(94% 0.025 70);
+  --text: oklch(27% 0.02 55);
+  --text-soft: oklch(48% 0.025 55);
+  --border: oklch(89% 0.02 65);
+  --gold: oklch(60% 0.11 55);
+  --gold-soft: oklch(92% 0.05 55);
+  --indigo: oklch(60% 0.11 265);
+  --indigo-soft: oklch(92% 0.05 265);
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Heebo', system-ui, sans-serif;
+  direction: rtl;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Frank Ruhl Libre', serif;
+  margin: 0;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+a:hover {
+  color: oklch(50% 0.12 55);
+}
+
+button {
+  font-family: 'Heebo', sans-serif;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: 'Heebo', sans-serif;
+}
