@@ -34,6 +34,14 @@
 1. בתפריט הצד: Build → Firestore Database → "Create database".
 2. בחרו מיקום (Region) קרוב אליכם (למשל `europe-west1`).
 3. התחילו במצב "production" — כללי האבטחה כבר מוכנים בקובץ [firestore.rules](firestore.rules).
+4. **שימו לב ל-Database ID** שנוצר (בפרויקט הזה זה `yom-hazikaron`, לא `(default)`) —
+   הוא כבר מוזן ב-[src/firebase.js](src/firebase.js) וב-[firebase.json](firebase.json).
+   אם יצרתם מסד עם ID אחר, עדכנו את שני הקבצים בהתאם.
+
+**כדי שהאפליקציה תוכל לקרוא/לכתוב בפועל**, צריך גם לפרסם את כללי האבטחה —
+או דרך ה-CLI (שלב 7 למטה), או ידנית: Firestore Database → לשונית **Rules** →
+העתיקו לשם את תוכן [firestore.rules](firestore.rules) → **Publish**. אותו דבר
+ב-Storage → **Rules** עם תוכן [storage.rules](storage.rules).
 
 ### 4. הפעלת Storage (לתמונות בעמוד הזיכרון)
 1. Build → Storage → "Get started" → אותו מיקום כמו ב-Firestore.

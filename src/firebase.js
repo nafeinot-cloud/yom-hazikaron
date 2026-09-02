@@ -17,8 +17,12 @@ const firebaseConfig = {
   appId: '1:330219163631:web:15bd3474728ed35c03701a',
 };
 
+// This project's Firestore database was created with a named database ID
+// ("yom-hazikaron") rather than the default one — pass it explicitly.
+const FIRESTORE_DATABASE_ID = 'yom-hazikaron';
+
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = getFirestore(app, FIRESTORE_DATABASE_ID);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
