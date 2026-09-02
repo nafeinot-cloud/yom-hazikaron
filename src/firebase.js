@@ -9,12 +9,12 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: 'REPLACE_ME',
-  authDomain: 'REPLACE_ME.firebaseapp.com',
-  projectId: 'REPLACE_ME',
-  storageBucket: 'REPLACE_ME.appspot.com',
-  messagingSenderId: 'REPLACE_ME',
-  appId: 'REPLACE_ME',
+  apiKey: 'AIzaSyAtMNVrsTUBJC_3hTAO6Cbe8cSObfdWyaY',
+  authDomain: 'yom-hazikaron-20c71.firebaseapp.com',
+  projectId: 'yom-hazikaron-20c71',
+  storageBucket: 'yom-hazikaron-20c71.firebasestorage.app',
+  messagingSenderId: '330219163631',
+  appId: '1:330219163631:web:15bd3474728ed35c03701a',
 };
 
 export const app = initializeApp(firebaseConfig);
