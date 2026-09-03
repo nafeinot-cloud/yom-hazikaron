@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase.js';
-import { absToGregorian, gregorianToAbs, hebrewMonthName, hebrewNumeral, nextYahrzeit } from '../lib/hebrewCalendar.js';
+import { absToGregorian, absToHebrew, gregorianToAbs, hebrewMonthName, hebrewNumeral, nextYahrzeit } from '../lib/hebrewCalendar.js';
 import { displayName, honorific } from '../lib/person.js';
 import { buildYahrzeitIcs, downloadIcs } from '../lib/calendarExport.js';
 import { AppFlameIcon, CalendarPlusIcon, CalendarIcon, EditIcon, PlusIcon } from './icons.jsx';
@@ -33,7 +33,8 @@ export default function Dashboard() {
     return people
       .map((p) => {
         const nextAbs = nextYahrzeit(p.hebrewMonth, p.hebrewDay, todayAbs);
-        return { ...p, nextAbs, daysUntil: nextAbs - todayAbs };
+        const yearsSince = p.hebrewYear ? absToHebrew(nextAbs).year - p.hebrewYear : null;
+        return { ...p, nextAbs, daysUntil: nextAbs - todayAbs, yearsSince };
       })
       .sort((a, b) => a.nextAbs - b.nextAbs);
   }, [people]);
@@ -86,6 +87,11 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="person-date-greg">יחול השנה: {formatGregorian(absToGregorian(p.nextAbs))}</div>
+                  {p.yearsSince > 0 && (
+                    <div className="person-date-greg">
+                      {p.yearsSince} שנים {p.gender === 'female' ? 'לפטירתה' : 'לפטירתו'}
+                    </div>
+                  )}
                   <div className="nusach-tag">{NUSACH_LABEL[p.nusach] ?? NUSACH_LABEL.ashkenazi}</div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
