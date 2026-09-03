@@ -1,4 +1,5 @@
-import { absToGregorian, nextYahrzeit } from './hebrewCalendar.js';
+import { absToGregorian, hebrewMonthName, hebrewNumeral, nextYahrzeit } from './hebrewCalendar.js';
+import { displayName, honorific, religiousName } from './person.js';
 
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -28,26 +29,42 @@ function escapeIcsText(text) {
  */
 export function buildYahrzeitIcs(person, { fromAbs } = {}) {
   const abs = nextYahrzeit(person.hebrewMonth, person.hebrewDay, fromAbs);
-  const name = person.displayName ?? person.firstName;
+  const name = displayName(person);
   const stamp = icsDateTimeStampUTC();
 
   const start = icsDate(absToGregorian(abs));
   const end = icsDate(absToGregorian(abs + 1));
 
-  const event = [
+  const hebrewDateText = `${hebrewNumeral(person.hebrewDay)} ב${hebrewMonthName(person.hebrewMonth, person.hebrewYear)}`;
+
+  const descriptionLines = [
+    `${religiousName(person)} ${honorific(person)}`,
+    `תאריך פטירה עברי: ${hebrewDateText}`,
+    person.burialPlace ? `מקום קבורה: ${person.burialPlace}` : null,
+    '',
+    'התאריך הלועזי משתנה משנה לשנה לפי הלוח העברי - יש לעדכן שוב בכל שנה.',
+  ].filter(Boolean);
+
+  const eventLines = [
     'BEGIN:VEVENT',
     `UID:yahrzeit-${person.id}-${start}@yom-hazikaron`,
     `DTSTAMP:${stamp}`,
     `DTSTART;VALUE=DATE:${start}`,
     `DTEND;VALUE=DATE:${end}`,
-    `SUMMARY:${escapeIcsText(`יום הזכרון - ${name}`)}`,
-    `DESCRIPTION:${escapeIcsText('התאריך הלועזי משתנה משנה לשנה לפי הלוח העברי - יש לעדכן שוב בכל שנה.')}`,
-    'END:VEVENT',
-  ].join('\r\n');
+    `SUMMARY:${escapeIcsText(`יום הזכרון - ${name} ${honorific(person)}`)}`,
+    `DESCRIPTION:${escapeIcsText(descriptionLines.join('\n'))}`,
+  ];
+  if (person.burialPlace) eventLines.push(`LOCATION:${escapeIcsText(person.burialPlace)}`);
+  eventLines.push('END:VEVENT');
 
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//יום הזכרון//HE', 'CALSCALE:GREGORIAN', event, 'END:VCALENDAR'].join(
-    '\r\n'
-  );
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//יום הזכרון//HE',
+    'CALSCALE:GREGORIAN',
+    eventLines.join('\r\n'),
+    'END:VCALENDAR',
+  ].join('\r\n');
 }
 
 export function downloadIcs(filename, icsContent) {
