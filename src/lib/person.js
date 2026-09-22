@@ -15,3 +15,10 @@ export function displayName(person) {
 export function honorific(person) {
   return person.gender === 'female' ? 'ע״ה' : 'ז״ל';
 }
+
+/** "(בת אברהם)" / "(בן אברהם)" — father's-name suffix for headers, e.g. the mishnayot and tefila tabs. */
+export function fatherNameSuffix(person) {
+  if (!person.fatherName) return '';
+  const rel = person.gender === 'female' ? 'בת' : 'בן';
+  return ` (${rel} ${person.fatherName})`;
+}

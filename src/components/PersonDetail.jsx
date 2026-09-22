@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { hebrewMonthName, hebrewNumeral } from '../lib/hebrewCalendar.js';
-import { displayName, honorific } from '../lib/person.js';
+import { displayName, fatherNameSuffix, honorific } from '../lib/person.js';
 import { BackIcon, BookIcon, PrayerIcon, WallIcon } from './icons.jsx';
 import FontSizeControl from './FontSizeControl.jsx';
 import MishnaTab from './MishnaTab.jsx';
@@ -50,6 +50,7 @@ export default function PersonDetail() {
           <div style={{ minWidth: 0 }}>
             <div className="person-name" style={{ fontSize: 17 }}>
               {displayName(person)} {honorific(person)}
+              {(tab === 'mishna' || tab === 'tefila') && fatherNameSuffix(person)}
             </div>
             <div className="muted" style={{ fontSize: 12 }}>
               {hebrewNumeral(person.hebrewDay)} ב{hebrewMonthName(person.hebrewMonth, person.hebrewYear)}
