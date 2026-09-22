@@ -5,7 +5,8 @@ import { db } from '../firebase.js';
 import { gregorianToHebrew, hebrewNumeral, monthsInDisplayOrder } from '../lib/hebrewCalendar.js';
 import { BackIcon } from './icons.jsx';
 
-const CURRENT_HYEAR = new Date().getFullYear() + 3760;
+const TODAY = new Date();
+const CURRENT_HYEAR = gregorianToHebrew(TODAY.getFullYear(), TODAY.getMonth() + 1, TODAY.getDate()).year;
 const YEAR_OPTIONS = Array.from({ length: 120 }, (_, i) => CURRENT_HYEAR - i);
 
 export default function PersonForm() {
