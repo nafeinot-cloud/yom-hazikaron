@@ -5,8 +5,7 @@ const EXPECTED_COUNTS = { 33: 22, 16: 11, 17: 15, 72: 20, 91: 16, 104: 35, 130: 
 
 function clean(line) {
   return line
-    .replace(/[א-ת]{2,}׀/g, '') // stray bare ketiv fragments (none expected here, kept for safety)
-    .replace(/׀/g, ' ')
+    .replace(/׀/g, ' ') // paseq is just a prosodic separator between two ordinary words here
     .replace(/[֑-֯]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
