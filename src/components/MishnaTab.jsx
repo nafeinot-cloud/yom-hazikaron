@@ -90,10 +90,9 @@ export default function MishnaTab({ person }) {
         לימוד משניות לעילוי נשמת {religiousName(person)} {honorific(person)}
       </div>
 
-      <a
-        href={KEHATI_APP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={() => window.open(KEHATI_APP_URL, '_blank', 'noopener,noreferrer')}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -101,12 +100,16 @@ export default function MishnaTab({ person }) {
           alignSelf: 'flex-start',
           fontSize: 12,
           color: 'var(--gold)',
-          textDecoration: 'none',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
         }}
       >
         <ExternalLinkIcon size={13} />
         רוצים גם את פירוש קהתי? פתחו באפליקציית "משניות קהתי"
-      </a>
+      </button>
 
       <div className="note-box">
         לכל אות בשם <b style={{ color: 'var(--text)' }}>{person.firstName}</b>, נבחרה משנה קצרה הפותחת באותה אות - מנהג לימוד
