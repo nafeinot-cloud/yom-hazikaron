@@ -379,6 +379,53 @@
   background: var(--indigo);
 }
 
+.mishna-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 0 2px;
+}
+
+.clamp-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.expand-toggle {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mishna-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.mishna-option-btn {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mishna-option-btn.selected {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-weight: 600;
+}
+
 .disclaimer {
   font-size: 11px;
   color: var(--text-soft);

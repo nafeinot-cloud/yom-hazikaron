@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { mishnayotForName, NESHAMA_ADDENDUM } from '../data/mishnayot.js';
 import { hebrewNumeral } from '../lib/hebrewCalendar.js';
+import { honorific, religiousName } from '../lib/person.js';
 
 function emphasizeFirstLetter(text) {
   if (!text) return null;
@@ -11,28 +13,66 @@ function emphasizeFirstLetter(text) {
   );
 }
 
-function MishnaCard({ letter, tractate, chapter, mishna, fullText, commentary, indigo }) {
+/** Clamped to 3 lines by default, with a toggle to read the rest. */
+function Collapsible({ children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <div className={open ? undefined : 'clamp-text'}>{children}</div>
+      <span className="expand-toggle" onClick={() => setOpen((o) => !o)}>
+        {open ? 'הצג פחות' : 'קרא עוד'}
+      </span>
+    </div>
+  );
+}
+
+function MishnaCard({ letter, options, indigo }) {
+  const [optionIdx, setOptionIdx] = useState(0);
+  const opt = options[Math.min(optionIdx, options.length - 1)];
+  if (!opt) return null;
+
   return (
     <div className="mishna-card">
       <div className={`letter-badge${indigo ? ' indigo' : ''}`}>{letter}</div>
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        {options.length > 1 && (
+          <div className="mishna-options">
+            {options.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`mishna-option-btn${i === optionIdx ? ' selected' : ''}`}
+                onClick={() => setOptionIdx(i)}
+              >
+                משנה {hebrewNumeral(i + 1)}
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{ fontSize: 13, fontWeight: 700 }}>
-          {tractate}, פרק {chapter}
-          {mishna ? ` משנה ${hebrewNumeral(mishna)}` : ''}
+          {opt.tractate}, פרק {opt.chapter}
+          {opt.mishna ? ` משנה ${hebrewNumeral(opt.mishna)}` : ''}
         </div>
-        <div
-          style={{
-            fontFamily: "'Frank Ruhl Libre', serif",
-            fontSize: 15,
-            lineHeight: 1.9,
-            margin: '6px 0 8px',
-          }}
-        >
-          {emphasizeFirstLetter(fullText)}
+        <Collapsible>
+          <div
+            style={{
+              fontFamily: "'Frank Ruhl Libre', serif",
+              fontSize: 15,
+              lineHeight: 1.9,
+              margin: '6px 0 8px',
+            }}
+          >
+            {emphasizeFirstLetter(opt.fullText)}
+          </div>
+        </Collapsible>
+        <div className="muted" style={{ fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>
+          פירוש רבינו עובדיה מברטנורא
         </div>
-        <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.65 }}>
-          פירוש פשוט: {commentary}
-        </div>
+        <Collapsible>
+          <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.65 }}>
+            {opt.bartenura}
+          </div>
+        </Collapsible>
       </div>
     </div>
   );
@@ -43,6 +83,10 @@ export default function MishnaTab({ person }) {
 
   return (
     <main className="content">
+      <div className="mishna-heading">
+        לימוד משניות לעילוי נשמת {religiousName(person)} {honorific(person)}
+      </div>
+
       <div className="note-box">
         לכל אות בשם <b style={{ color: 'var(--text)' }}>{person.firstName}</b>, נבחרה משנה קצרה הפותחת באותה אות - מנהג לימוד
         לעילוי נשמה, נלמד בערב או ביום יום הזכרון. האות הראשונה של כל משנה מודגשת.
@@ -54,7 +98,7 @@ export default function MishnaTab({ person }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {entries.map((entry, i) => (
-            <MishnaCard key={i} {...entry} />
+            <MishnaCard key={i} letter={entry.letter} options={entry.options} />
           ))}
         </div>
       </div>
@@ -72,11 +116,7 @@ export default function MishnaTab({ person }) {
             <MishnaCard
               key={i}
               letter={m.letter}
-              tractate={NESHAMA_ADDENDUM.tractate}
-              chapter={NESHAMA_ADDENDUM.chapter}
-              mishna={m.mishna}
-              fullText={m.fullText}
-              commentary={m.commentary}
+              options={[{ tractate: NESHAMA_ADDENDUM.tractate, chapter: NESHAMA_ADDENDUM.chapter, mishna: m.mishna, fullText: m.fullText, bartenura: m.bartenura }]}
               indigo
             />
           ))}
