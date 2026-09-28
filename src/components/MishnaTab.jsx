@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { mishnayotForName, NESHAMA_ADDENDUM } from '../data/mishnayot.js';
 import { hebrewNumeral } from '../lib/hebrewCalendar.js';
 import { honorific, religiousName } from '../lib/person.js';
+import { ExternalLinkIcon } from './icons.jsx';
+
+const KEHATI_APP_URL = 'https://play.google.com/store/apps/details?id=com.nocker.kehati&hl=he';
 
 function emphasizeFirstLetter(text) {
   if (!text) return null;
@@ -86,6 +89,24 @@ export default function MishnaTab({ person }) {
       <div className="mishna-heading">
         לימוד משניות לעילוי נשמת {religiousName(person)} {honorific(person)}
       </div>
+
+      <a
+        href={KEHATI_APP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          alignSelf: 'flex-start',
+          fontSize: 12,
+          color: 'var(--gold)',
+          textDecoration: 'none',
+        }}
+      >
+        <ExternalLinkIcon size={13} />
+        רוצים גם את פירוש קהתי? פתחו באפליקציית "משניות קהתי"
+      </a>
 
       <div className="note-box">
         לכל אות בשם <b style={{ color: 'var(--text)' }}>{person.firstName}</b>, נבחרה משנה קצרה הפותחת באותה אות - מנהג לימוד

@@ -168,6 +168,16 @@ export function WhatsAppIcon(props) {
   );
 }
 
+export function ExternalLinkIcon(props) {
+  return (
+    <svg {...base} width={props.size ?? 14} height={props.size ?? 14} {...props}>
+      <path d="M14 4h6v6" />
+      <path d="M20 4 10 14" />
+      <path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" />
+    </svg>
+  );
+}
+
 export function CommentIcon(props) {
   return (
     <svg {...base} width={props.size ?? 17} height={props.size ?? 17} {...props}>
